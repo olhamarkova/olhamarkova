@@ -1,4 +1,4 @@
-[![Header](https://drive.google.com/file/d/1S7gsukMMSUdpKJ02VUx2YZ-C6gcbZ88Z/view?usp=share_link).png)]
+[![Header](https://drive.google.com/file/d/1S7gsukMMSUdpKJ02VUx2YZ-C6gcbZ88Z/view?usp=share_link)]
 ### Hi there 👋
 ## I'm a Junior QA Engineer.  
 ## My CV
