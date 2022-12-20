@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<petstore>
+	<pets>
+		<pet id="1">
+			<name>Marta</name>
+			<breed>Monkey</breed>
+		</pet>
+		<pet id="2">
+			<name>Sharik</name>
+			<breed>Dog</breed>
+		</pet>
+		<pet id="3">
+			<name>Silva</name>
+			<breed>Cat</breed>
+		</pet>
+	</pets>
+	<food>
+		<milk/>
+		<sausage/>
+		<bone type="chicken" taste="garlic"/>
+		<water>Bonaqua</water>
+	</food>
+</petstore>
+
