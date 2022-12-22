@@ -1,0 +1,30 @@
+{
+  "animals": [
+    {
+      "type": "cat",
+      "name": "Silva",
+      "age": 3,
+      "loves": "sausage",
+      "brand": "Russian blue"
+    },
+    {
+      "type": "dog",
+      "name": "Sharik",
+      "age": 2,
+      "brand": "labrador",
+      "hobby": "throw a ball"
+    }
+  ],
+  "goods": [
+    {
+      "type": "meal",
+      "weight": "1 kg",
+      "taste": "salty"
+    },
+    {
+      "type": "clothes",
+      "color": "blue",
+      "size": 3
+    }
+  ]
+}
