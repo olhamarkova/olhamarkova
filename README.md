@@ -16,6 +16,6 @@
 ![Header](https://img.shields.io/badge/TestRail-090909?style=for-the-badge&logo=&logoColor=71b556)
 ![Header](https://img.shields.io/badge/Fiddler-090909?style=for-the-badge&logo=fiddler&logoColor=8cc4d7)
 
-Still study JavaScript and QA Automation
+Still studying JavaScript and QA Automation
 
 -->
