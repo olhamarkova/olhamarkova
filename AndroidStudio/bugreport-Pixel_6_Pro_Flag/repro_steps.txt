@@ -1,0 +1,4 @@
+1. Enter the game
+2. Choose Ukraine
+
+Actual Result: The first flag on the map is too close to the border of screen

@@ -1,0 +1,6 @@
+1. Start a level
+2. Choose a spearman
+3. Finishing level
+
+Expected Result: Spearman dies after 10 wounds; the maximum number of spearmen who left the tower is 5; the sign of the grave appears at the site of the tower after he has died
+Actual Result: Spearmen spawn endlessly, the unit doesn't die
