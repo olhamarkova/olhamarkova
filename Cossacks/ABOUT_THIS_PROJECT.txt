@@ -8,3 +8,6 @@ Released in March 2019
 
 https://play.google.com/store/apps/details?id=com.dmp.cossacks&hl=en&gl=US
 
+My responsibility was testing within the team of 4 testers. We used real devices and AndroidStudio for testing.
+
+

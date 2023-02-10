@@ -1,9 +1,13 @@
 ROYAL STONE
 
-The company is engaged in the production of products from granite
+The company is engaged in the production of products from granite.
 
 The WordPress site was released in November 2016. Maintained by a team of 4 people
 
 Traffic: about 10k sessions per month
 Bounce rate: 0.41%
+The average number of pages per session: 3
+
+One of my responsibilities on the project is testing.
+I maintain documentation (checklists, test cases for myself, and bug reports for developers). Simple smoke tests are covered with Selenium IDE.
 
