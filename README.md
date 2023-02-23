@@ -2,7 +2,7 @@
 ### Hi there! 👋
 ## I'm a QA Engineer with experience in Web and Mobile App Testing. Highly motivated to constantly develop my skills in exciting projects. Now I am studying JavaScript and Automation Testing.  
 ## My CV
-[Link to my CV](https://docs.google.com/document/d/17fJBq5C0kGmuW3GY9xyAMWmh1CHLQKj4AZAl--Law9Q/edit?usp=sharing)
+[Link to my CV](https://docs.google.com/document/d/1J80X9KltbyYnbWadHAZeSjkiAfcQAQG8KT0NTMzS37I/edit?usp=sharing)
 
 ### Languages and Tools
 ![Header](https://img.shields.io/badge/Jira-090909?style=for-the-badge&logo=jira&logoColor=136be1)
