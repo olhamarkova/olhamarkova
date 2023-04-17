@@ -1,6 +1,8 @@
 
 ### Hi there! 👋
-## I'm a QA Engineer with experience in Web and Mobile App Testing. Highly motivated to constantly develop my skills in exciting projects. Now I am studying JavaScript and Automation Testing.  
+## A QA Engineer with over 3 years of experience in web- and mobile app testing. 
+    Currently, I am studying Test Automation (JavaScript) and looking for a company where I can develop further as a specialist and improve my skills.
+  
 ## My CV
 [Link to my CV](https://docs.google.com/document/d/1J80X9KltbyYnbWadHAZeSjkiAfcQAQG8KT0NTMzS37I/edit?usp=sharing)
 

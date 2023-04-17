@@ -1,5 +1,0 @@
-1. Select Easy level mode
-2. Complete the level
-
-Expected result: the number of stars and ratings on the map match
-Actual result: the number of stars and ratings on the map are different
