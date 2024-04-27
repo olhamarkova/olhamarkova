@@ -1,10 +1,11 @@
 ### Hi there! 👋
 
-## I am a certified QA Engineer with over 3 years of experience in web and mobile app testing. A strong team player, as well as self-organized enough to work as the only tester on the project. Always open to learning new things and improving existing skills.
+## I am an ISTQB® Certified QA Engineer with over 4 years of experience in manual web and mobile app testing, and 1.5 years in test automation (REST API, e-2-e). Prefer complex and fascinating projects that require smart solutions.
+Have experience in Healthcare/MedTech and e-commerce domains.
 
 ## My CV
 
-[Link to my CV](https://docs.google.com/document/d/1J80X9KltbyYnbWadHAZeSjkiAfcQAQG8KT0NTMzS37I/edit?usp=sharing)
+[Link to my CV](https://docs.google.com/document/d/1UZoXagw1gLoMvg04s9ZWOp6PjNDLgJkgj3eyoEJoOII/edit?usp=sharing)
 
 ### Languages and Tools
 
