@@ -1,11 +1,11 @@
 ### Hi there! 👋
 
-## I am an ISTQB® Certified QA Engineer with over 4 years of experience in manual web and mobile app testing, and 1.5 years in test automation (REST API, e-2-e). Prefer complex and fascinating projects that require smart solutions.
-Have experience in Healthcare/MedTech and e-commerce domains.
+## I am an ISTQB® Certified QA Engineer with experience in manual web and mobile app testing, and test automation (REST API, e-2-e). Prefer complex and fascinating projects that require smart solutions.
+Have experience in Healthcare/MedTech and E-Commerce domains.
 
 ## My CV
 
-[Link to my CV](https://docs.google.com/document/d/1UZoXagw1gLoMvg04s9ZWOp6PjNDLgJkgj3eyoEJoOII/edit?usp=sharing)
+[Link to my CV](https://docs.google.com/document/d/1UZoXagw1gLoMvg04s9ZWOp6PjNDLgJkgj3eyoEJoOII/edit#heading=h.slrytqw7edjf)
 
 ### Languages and Tools
 
