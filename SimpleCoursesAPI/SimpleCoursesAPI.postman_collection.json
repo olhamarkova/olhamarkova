@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "f437480a-1420-43f9-863c-13b4229dae97",
 		"name": "SimpleCoursesAPI",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "24716912"
 	},
 	"item": [
@@ -16,22 +16,51 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", () => {",
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv();",
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Status code should be 200\", () => {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Check count\", () => {",
-									"    pm.expect(response).to.has.property(\"count\");",
+									"pm.test(\"Count of courses should be eql 10 by default\", () => {",
+									"    pm.expect(response.courses.length).to.eql(10);",
 									"});",
 									"",
-									"pm.test(\"Check limit of courses\", () => {",
-									"    pm.expect(response.courses.length).to.eql(10);",
+									"pm.test(\"Schema for the response should be valid\", function () {",
+									"  const schema = {",
+									"    type: \"object\",",
+									"    properties: {",
+									"      reqId: {",
+									"        type: \"string\"",
+									"      },",
+									"      courses: {",
+									"        type: \"array\",",
+									"        items: {",
+									"          type: \"object\",",
+									"          properties: {",
+									"            id: { type: \"string\" },",
+									"            title: { type: \"string\" },",
+									"            author: { type: \"string\" },",
+									"            free: { type: \"boolean\" },",
+									"            resource: { type: \"string\" },",
+									"            category: { type: \"string\" }",
+									"          }",
+									"        }",
+									"      },",
+									"      count: { type: \"number\" }",
+									"    },",
+									"    required: [\"courses\", \"count\"]",
+									"  };",
+									"",
+									"  const validate = ajv.compile(schema);",
+									"  pm.expect(validate(response)).to.be.true;",
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
@@ -40,7 +69,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -59,15 +89,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses"
-							]
-						}
+						"url": "{{baseURL}}/courses"
 					},
 					"response": []
 				},
@@ -78,20 +100,69 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv();",
+									"const response = pm.response.json();",
+									"pm.environment.set(\"newCourseId\", response.data.course.id)",
+									"",
 									"pm.test(\"Status code is 201\", () => {",
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Response should contain course data\", () => {",
-									"    pm.expect(response.data).to.has.property(\"course\");",
+									"pm.test(\"Success message should be correct\", () => {",
+									"     pm.expect(response.message).to.eq(\"The course was created successfully\");",
 									"});",
 									"",
-									"pm.environment.set(\"courseId\", response.data.course.id);",
+									"pm.test(\"Schema for the response should be valid\", () => {",
+									"    const schema = {",
+									"        type: \"object\",",
+									"        properties: {",
+									"            reqId: { type: \"string\" },",
+									"            message: { type: \"string\" },",
+									"            data: { type: \"object\", ",
+									"            properties: {",
+									"                course: {",
+									"                    type: \"object\",",
+									"                    properties: {",
+									"                        id: { type: \"string\" },",
+									"                        title: { type: \"string\" },",
+									"                        author: { type: \"string\" },",
+									"                        free: { type: \"boolean\" },",
+									"                        resource: { type: \"string\" },",
+									"                        category: { type: \"string\" }",
+									"                    },",
+									"                    required: [\"id\", \"title\", \"author\", \"free\", \"resource\", \"category\"]",
+									"                }",
+									"            }",
+									"        },",
+									"        ",
+									"    },",
+									"    required: [\"reqId\", \"data\"]",
+									"}",
+									"",
+									"    pm.expect(ajv.validate(schema, response)).to.be.true;",
+									"});",
+									"",
+									"pm.sendRequest({",
+									"    url: pm.environment.get(\"baseURL\") + \"/courses\" + \"/\" + pm.environment.get(\"newCourseId\"),",
+									"    method: \"DELETE\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\",",
+									"    },",
+									"    body: {}",
+									"}, function (err, res) {",
+									"    if(err){",
+									"        throw new Error(\"Something went wrong during pre-request script\")",
+									"    }",
+									"    const response = res.json();",
+									"    pm.expect(response.message).to.eq(\"The course was deleted successfully\");",
+									"});",
+									"",
+									"pm.environment.unset(\"newCourseId\");",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -100,53 +171,98 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"author\": \"Some awesome author\",\n    \"isFree\": true,\n    \"site\": \"https://example.com/\",\n    \"title\": \"Some awesome course\",\n    \"type\": \"ENG\"\n}",
+							"raw": "{\n    \"author\": \"{{$randomFullName}}\",\n    \"isFree\": true,\n    \"site\": \"https://example.com/\",\n    \"title\": \"{{$randomLoremSentence}}\",\n    \"type\": \"QA\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses"
-							]
-						}
+						"url": "{{baseURL}}/courses"
 					},
 					"response": []
 				},
 				{
-					"name": "Get a created course by id",
+					"name": "Get a course by id",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"Status code is 200\", () => {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
+									"const Ajv = require('ajv');",
+									"const ajv = new Ajv();",
 									"const response = pm.response.json();",
+									"const courseId = pm.environment.get(\"courseId\");",
 									"",
-									"pm.test(\"Check course data\", () => {",
-									"    pm.expect(response).to.has.property(\"course\");",
-									"});",
+									"if(pm.response.code === 200){",
+									"    pm.test(\"The course should have the correct ID\", () => {",
+									"        pm.expect(response.course.id).to.eq(courseId);",
+									"    });",
+									"",
+									"    pm.test(\"Schema for the response should be valid\", () => {",
+									"        const schema = {",
+									"        type: \"object\",",
+									"        properties: {",
+									"        reqId: { type: \"string\" },",
+									"        course: {",
+									"            type: \"object\",",
+									"            properties: {",
+									"            id: { type: \"string\" },",
+									"            title: { type: \"string\" },",
+									"            author: { type: \"string\" },",
+									"            free: { type: \"boolean\" },",
+									"            resource: { type: \"string\" },",
+									"            category: { type: \"string\" }",
+									"            },",
+									"            required: [\"id\", \"title\", \"author\", \"free\", \"resource\", \"category\"]",
+									"        }",
+									"     },",
+									"        required: [\"reqId\", \"course\"]",
+									"    };",
+									"",
+									"    pm.expect(ajv.validate(schema, response)).to.be.true;",
+									"    });",
+									"",
+									"}",
+									"",
+									"if(!courseId){",
+									"    pm.test(\"Status code should be 404\", () => {",
+									"    pm.response.to.have.status(404);",
+									"    });",
+									"}",
+									"",
+									"pm.environment.unset(\"courseId\");",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						},
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
+									"pm.sendRequest({",
+									"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+									"    method: \"GET\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\",",
+									"    },",
+									"    body: {}",
+									"}, function (err, res) {",
+									"    if(err){",
+									"        throw new Error(\"Something went wrong during pre-request script\")",
+									"    }",
+									"    const response = res.json();",
+									"    const courseId = response.courses[0].id;",
+									"    pm.environment.set(\"courseId\", courseId)",
+									"});",
+									"",
+									"",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -165,16 +281,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/{{courseId}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"{{courseId}}"
-							]
-						}
+						"url": "{{baseURL}}/courses/{{courseId}}"
 					},
 					"response": []
 				},
@@ -185,20 +292,77 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"const response = pm.response.json();",
+									"",
 									"pm.test(\"Status code is 200\", () => {",
 									"    pm.response.to.have.status(200);",
 									"});",
-									"",
-									"const response = pm.response.json();",
 									"",
 									"pm.test(\"Response should contain updated course data\", () => {",
 									"    pm.expect(response.data).to.has.property(\"updatedCourse\");",
 									"});",
 									"",
+									"pm.test(\"Success message should be correct\", () => {",
+									"    pm.expect(response.message).to.eq(\"The course was updated successfully\");",
+									"});",
 									"",
-									"//id for tests 640f2f1b44c471a3cdcb8079"
+									"pm.test(\"Category should be updated\", () => {",
+									"    pm.expect(response.data.updatedCourse.category).to.eq(\"QA\");",
+									"});",
+									"",
+									"pm.sendRequest({",
+									"    url: pm.environment.get(\"baseURL\") + \"/courses\" + \"/\" + pm.environment.get(\"newCourseId\"),",
+									"    method: \"DELETE\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\",",
+									"    },",
+									"    body: {}",
+									"}, function (err, res) {",
+									"    if(err){",
+									"        throw new Error(\"Something went wrong during pre-request script\")",
+									"    }",
+									"    const response = res.json();",
+									"    pm.expect(response.message).to.eq(\"The course was deleted successfully\");",
+									"});",
+									"",
+									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.sendRequest({",
+									"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+									"    method: \"POST\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\",",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({",
+									"            author: \"Some awesome author\",",
+									"            isFree: true,",
+									"            site: \"https://example.com/\",",
+									"            title: \"Some awesome course\",",
+									"            type: \"ENG\"",
+									"        })",
+									"    }",
+									"}, function (err, res) {",
+									"    if(err){",
+									"        throw new Error(err)",
+									"    }",
+									"    const response = res.json();",
+									"    pm.environment.set(\"newCourseId\", response.data.course.id)",
+									"    pm.expect(response.message).to.eq(\"The course was created successfully\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -207,23 +371,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"author\": \"Great author\",\n    \"isFree\": true,\n    \"site\": \"https://example2.com\",\n    \"title\": \"Great course\",\n    \"type\": \"QA\"\n}\n",
+							"raw": "{\n    \"author\": \"{{$randomFullName}}\",\n    \"isFree\": true,\n    \"site\": \"https://example.com/\",\n    \"title\": \"{{$randomLoremSentence}}\",\n    \"type\": \"QA\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/{{courseId}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"{{courseId}}"
-							]
-						}
+						"url": "{{baseURL}}/courses/{{newCourseId}}"
 					},
 					"response": []
 				},
@@ -234,18 +389,54 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"const response = pm.response.json();",
+									"",
 									"pm.test(\"Status code is 200\", () => {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Response should contain a message\", () => {",
-									"    pm.expect(response).to.has.property(\"message\");",
+									"pm.test(\"Success message should be correct\", () => {",
+									"    pm.expect(response.message).to.eq(\"The course was deleted successfully\");",
 									"});",
+									"",
+									"pm.environment.unset(\"courseId\");",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.sendRequest({",
+									"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+									"    method: \"POST\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\",",
+									"    },",
+									"    body: {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({",
+									"            author: \"Some awesome author\",",
+									"            isFree: true,",
+									"            site: \"https://example.com/\",",
+									"            title: \"Some awesome course\",",
+									"            type: \"ENG\"",
+									"        })",
+									"    }",
+									"}, function (err, res) {",
+									"    if(err){",
+									"        throw new Error(err)",
+									"    }",
+									"    const response = res.json();",
+									"    pm.environment.set(\"courseId\", response.data.course.id)",
+									"    pm.expect(response.message).to.eq(\"The course was created successfully\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -261,68 +452,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/{{courseId}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"{{courseId}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get course by id",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 404\", () => {",
-									"    pm.response.to.have.status(404);",
-									"});",
-									"",
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Error message should contain fact\", () => {",
-									"    pm.expect(response).to.has.property(\"fact\");",
-									"});",
-									"",
-									"pm.environment.unset(\"courseId\");",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/courses/{{courseId}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"{{courseId}}"
-							]
-						}
+						"url": "{{baseURL}}/courses/{{courseId}}"
 					},
 					"response": []
 				}
@@ -353,464 +483,27 @@
 			]
 		},
 		{
-			"name": "Check get all courses request",
+			"name": "Get All Courses",
 			"item": [
-				{
-					"name": "Negative checks",
-					"item": [
-						{
-							"name": "Get all courses skip 80",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Check the count\", () => {",
-											"    pm.expect(response).to.has.property(\"count\");",
-											"});",
-											"",
-											"pm.test(\"Check the response body\", () => {",
-											"    pm.expect(response.courses.length).to.eql(0);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/courses?skip=80",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"courses"
-									],
-									"query": [
-										{
-											"key": "skip",
-											"value": "80"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get all courses skip -1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Check title of the first course\", () => {",
-											"    pm.expect(response.courses[0].title).to.eql(\"Web Element Locator Strategies\");",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/courses?skip=-1",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"courses"
-									],
-									"query": [
-										{
-											"key": "skip",
-											"value": "-1"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get all courses skip 1.1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Check title of first course\", () => {",
-											"    pm.expect(response.courses[0].title).to.eql(\"Web Element Locator Strategies\");",
-											"});",
-											"",
-											"pm.test(\"Check count of courses\", () => {",
-											"    pm.expect(response.courses.length).to.eql(10);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/courses?skip=1.1",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"courses"
-									],
-									"query": [
-										{
-											"key": "skip",
-											"value": "1.1"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get all courses  limit 80",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Check count\", () => {",
-											"    pm.expect(response).to.has.property(\"count\");",
-											"});",
-											"",
-											"pm.test(\"Check limit of courses\", () => {",
-											"    pm.expect(response.courses.length).to.eql(response.count);",
-											"});",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/courses?limit=80",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"courses"
-									],
-									"query": [
-										{
-											"key": "limit",
-											"value": "80"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get all courses  limit -1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Check count\", () => {",
-											"    pm.expect(response).to.has.property(\"count\");",
-											"});",
-											"",
-											"pm.test(\"Check limit of courses\", () => {",
-											"    pm.expect(response.courses.length).to.eql(pm.environment.get(\"limit\"));",
-											"});",
-											"",
-											"pm.environment.unset(\"limit\");",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"const params = pm.request.url.query.all();",
-											"",
-											"let limit;",
-											"params.forEach(el => {",
-											"    if(el.key === \"limit\") {",
-											"        limit = Math.abs(el.value);",
-											"    }",
-											"});",
-											"",
-											"pm.environment.set(\"limit\", limit);"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/courses?limit=-1",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"courses"
-									],
-									"query": [
-										{
-											"key": "limit",
-											"value": "-1"
-										}
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get all courses  limit 1.1",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Check count\", () => {",
-											"    pm.expect(response).to.has.property(\"count\");",
-											"});",
-											"",
-											"const limit = pm.environment.get(\"limit\")",
-											"",
-											"pm.test(\"Check limit of courses\", () => {",
-											"    pm.expect(response.courses.length).to.eql(parseInt(limit));",
-											"});",
-											"",
-											"pm.environment.unset(\"limit\");",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"const params = pm.request.url.query.all();",
-											"",
-											"let limit;",
-											"params.forEach(el => {",
-											"    if(el.key === \"limit\") {",
-											"        limit = Math.floor(el.value);",
-											"    }",
-											"});",
-											"",
-											"pm.environment.set(\"limit\", limit);",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/courses?limit=1.1",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"courses"
-									],
-									"query": [
-										{
-											"key": "limit",
-											"value": "1.1"
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
 				{
 					"name": "Positive checks",
 					"item": [
 						{
-							"name": "Get all courses skip 0",
+							"name": "Skip parameter eqls 0",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"const response = pm.response.json();",
 											"",
-											"pm.test(\"Check response body\", () => {",
+											"pm.test(\"Response should contain 10 courses as by default\", () => {",
 											"    pm.expect(response.courses.length).to.eql(10);",
 											"});",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -819,7 +512,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -857,37 +551,50 @@
 							"response": []
 						},
 						{
-							"name": "Get all courses skip 5",
+							"name": "Skip parameter eqls 5",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"const response = pm.response.json();",
 											"",
-											"pm.test(\"Check response body\", () => {",
+											"pm.test(\"Response should contain 10 courses by default\", () => {",
 											"    pm.expect(response.courses.length).to.eql(10);",
 											"});",
 											"",
-											"pm.test(\"Check req body\", () => {",
-											"    pm.expect(response.courses[0].title).to.eql(\"Introduction to JavaScript\");",
+											"pm.test(\"Title for the first course of the list should be correct\", () => {",
+											"    pm.expect(response.courses[0].title).to.eql(pm.environment.get(\"courseTitle\"));",
 											"});",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
 									"listen": "prerequest",
 									"script": {
 										"exec": [
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+											"    method: \"GET\",",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"    },",
+											"    body: {}",
+											"}, function (err, res) {",
+											"    if(err){",
+											"        throw new Error(\"Something went wrong during pre-request script\")",
+											"    }",
+											"    const response = res.json();",
+											"    const fifthCourseTitile = response.courses[5].title;",
+											"    pm.environment.set(\"courseTitle\", fifthCourseTitile)",
+											"});",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -925,24 +632,21 @@
 							"response": []
 						},
 						{
-							"name": "Get all courses  limit 0",
+							"name": "Limit parameter eqls 0",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"const response = pm.response.json();",
 											"",
-											"pm.test(\"Check limit of courses\", () => {",
+											"pm.test(\"Number of courses should be eql courses count\", () => {",
 											"    pm.expect(response.courses.length).to.eql(response.count);",
 											"});",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -951,7 +655,8 @@
 										"exec": [
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -989,50 +694,31 @@
 							"response": []
 						},
 						{
-							"name": "Get all courses limit 11",
+							"name": "Limit parameter eqls 11",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"const response = pm.response.json();",
 											"",
-											"pm.test(\"Check quantity of courses\", () => {",
-											"    let limit = pm.environment.get(\"limit\")",
-											"    pm.expect(limit).to.eql(response.courses.length.toString());",
+											"pm.test(\"Quantity of courses should be eql 11\", () => {",
+											"    pm.expect(response.courses.length).to.eql(11);",
 											"});",
-											"",
-											"pm.environment.unset(\"limit\");",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
 									"listen": "prerequest",
 									"script": {
 										"exec": [
-											"const params = pm.request.url.query.all();",
-											"",
-											"console.log(params);",
-											"",
-											"let limit;",
-											"params.forEach(el => {",
-											"    if(el.key === \"limit\") {",
-											"        limit = el.value;",
-											"    }",
-											"});",
-											"",
-											"console.log(limit);",
-											"",
-											"pm.environment.set(\"limit\", limit);",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1070,7 +756,7 @@
 							"response": []
 						},
 						{
-							"name": "Get all courses with filter",
+							"name": "Predefined filter",
 							"event": [
 								{
 									"listen": "test",
@@ -1079,17 +765,12 @@
 											"const myFilter = pm.environment.get(\"myFilter\");",
 											"",
 											"if(myFilter && myFilter.length > 0) {",
-											"    postman.setNextRequest(\"Get all courses with filter\");",
+											"    pm.execution.setNextRequest(\"Get all courses with filter\");",
 											"} else {",
-											"    postman.setNextRequest(null);",
+											"    pm.execution.setNextRequest(null);",
 											"}",
 											"",
 											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"const type = pm.environment.get(\"type\");",
 											"const isFree = pm.environment.get(\"isFree\");",
 											"const author = pm.environment.get(\"author\");",
@@ -1104,7 +785,7 @@
 											"    return { category, price, courseAuthor }",
 											"    });",
 											"",
-											"pm.test(\"Check type\", () => {",
+											"pm.test(\"Type of a course should be correct\", () => {",
 											"    if(type) {",
 											"    pm.expect(type).to.eql(category);",
 											"    } else {",
@@ -1112,7 +793,7 @@
 											"    }",
 											"});",
 											"",
-											"pm.test(\"Check author\", () => {",
+											"pm.test(\"Author of a course should be correct\", () => {",
 											"    if(author) {",
 											"        pm.expect(author).to.equal(courseAuthor);",
 											"    } else {",
@@ -1120,7 +801,7 @@
 											"    }",
 											"});",
 											"",
-											"pm.test(\"Check price\", () => {",
+											"pm.test(\"Price of a course should be correct\", () => {",
 											"    if(price) {",
 											"        pm.expect(price.toString()).to.eql(isFree.toString());",
 											"        ",
@@ -1139,7 +820,8 @@
 											"}",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1183,7 +865,8 @@
 											"}",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1231,18 +914,13 @@
 							"response": []
 						},
 						{
-							"name": "Get all courses data file filter",
+							"name": "Data file filter",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"const response = pm.response.json();",
-											"",
-											"pm.test(\"Status code is 200\", () => {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
 											"const type = pm.environment.get(\"type\");",
 											"const isFree = pm.environment.get(\"isFree\");",
 											"const author = pm.environment.get(\"author\");",
@@ -1257,7 +935,7 @@
 											"    return { category, price, courseAuthor }",
 											"    });",
 											"",
-											"pm.test(\"Check type\", () => {",
+											"pm.test(\"Type of a course should be correct\", () => {",
 											"    if(type) {",
 											"    pm.expect(type).to.eql(category);",
 											"    } else {",
@@ -1265,7 +943,7 @@
 											"    }",
 											"});",
 											"",
-											"pm.test(\"Check author\", () => {",
+											"pm.test(\"Author of a course should be correct\", () => {",
 											"    if(author) {",
 											"        pm.expect(author).to.equal(courseAuthor);",
 											"    } else {",
@@ -1273,7 +951,7 @@
 											"    }",
 											"});",
 											"",
-											"pm.test(\"Check price\", () => {",
+											"pm.test(\"Price of a couse should be correct\", () => {",
 											"    if(price) {",
 											"        pm.expect(price.toString()).to.eql(isFree.toString());",
 											"        ",
@@ -1287,7 +965,8 @@
 											"pm.environment.unset(\"author\");",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								},
 								{
@@ -1309,7 +988,8 @@
 											"    };",
 											""
 										],
-										"type": "text/javascript"
+										"type": "text/javascript",
+										"packages": {}
 									}
 								}
 							],
@@ -1381,6 +1061,504 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "Negative checks",
+					"item": [
+						{
+							"name": "Skip more than exist",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"",
+											"pm.test(\"Courses property should be an empty array\", () => {",
+											"    pm.expect(response.courses).to.be.an(\"array\").that.to.be.empty;",
+											"});",
+											"",
+											"pm.environment.unset(\"coursesCount\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+											"    method: \"GET\",",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"    },",
+											"    body: {}",
+											"}, function (err, res) {",
+											"    if(err){",
+											"        throw new Error(\"Something went wrong during pre-request script\")",
+											"    }",
+											"    const response = res.json();",
+											"    const coursesCount = response.count;",
+											"    pm.environment.set(\"coursesCount\", Number(coursesCount) + 1)",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/courses?skip={{coursesCount}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"courses"
+									],
+									"query": [
+										{
+											"key": "skip",
+											"value": "{{coursesCount}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Skip parameter eqls -1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"",
+											"pm.test(\"Title for the first course of the list should be correct\", () => {",
+											"    pm.expect(response.courses[0].title).to.eql(pm.environment.get(\"courseTitle\"));",
+											"});",
+											"",
+											"pm.environment.unset(\"courseTitle\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+											"    method: \"GET\",",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"    },",
+											"    body: {}",
+											"}, function (err, res) {",
+											"    if(err){",
+											"        throw new Error(\"Something went wrong during pre-request script\")",
+											"    }",
+											"    const response = res.json();",
+											"    const secondCourseTitile = response.courses[1].title;",
+											"    pm.environment.set(\"courseTitle\", secondCourseTitile)",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/courses?skip=-1",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"courses"
+									],
+									"query": [
+										{
+											"key": "skip",
+											"value": "-1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Skip parameter eqls 1.1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"",
+											"pm.test(\"Title for the first course of the list should be correct\", () => {",
+											"    pm.expect(response.courses[0].title).to.eql(pm.environment.get(\"courseTitle\"));",
+											"});",
+											"",
+											"pm.test(\"Count of courses should be 10 as by default\", () => {",
+											"    pm.expect(response.courses.length).to.eql(10);",
+											"});",
+											"",
+											"pm.environment.unset(\"courseTitle\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+											"    method: \"GET\",",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"    },",
+											"    body: {}",
+											"}, function (err, res) {",
+											"    if(err){",
+											"        throw new Error(\"Something went wrong during pre-request script\")",
+											"    }",
+											"    const response = res.json();",
+											"    const secondCourseTitile = response.courses[1].title;",
+											"    pm.environment.set(\"courseTitle\", secondCourseTitile)",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/courses?skip=1.1",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"courses"
+									],
+									"query": [
+										{
+											"key": "skip",
+											"value": "1.1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Limit more than exist",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"",
+											"pm.test(\"Check limit of courses\", () => {",
+											"    pm.expect(response.courses.length).to.eql(response.count);",
+											"});",
+											"",
+											"pm.environment.unset(\"coursesCount\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"pm.sendRequest({",
+											"    url: pm.environment.get(\"baseURL\") + \"/courses\",",
+											"    method: \"GET\",",
+											"    header: {",
+											"        \"Content-Type\": \"application/json\",",
+											"    },",
+											"    body: {}",
+											"}, function (err, res) {",
+											"    if(err){",
+											"        throw new Error(\"Something went wrong during pre-request script\")",
+											"    }",
+											"    const response = res.json();",
+											"    const coursesCount = response.count;",
+											"    pm.environment.set(\"coursesCount\", Number(coursesCount) + 1)",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/courses?limit={{coursesCount}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"courses"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "{{coursesCount}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Limit parameter eqls -1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"",
+											"pm.test(\"Number of courses should be eql to limit\", () => {",
+											"    pm.expect(response.courses.length).to.eql(pm.environment.get(\"limit\"));",
+											"});",
+											"",
+											"pm.environment.unset(\"limit\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const params = pm.request.url.query.all();",
+											"",
+											"let limit;",
+											"params.forEach(el => {",
+											"    if(el.key === \"limit\") {",
+											"        limit = Math.abs(el.value);",
+											"    }",
+											"});",
+											"",
+											"pm.environment.set(\"limit\", limit);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/courses?limit=-1",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"courses"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "-1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Limit parameter eqls 1.1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const response = pm.response.json();",
+											"const limit = pm.environment.get(\"limit\")",
+											"",
+											"pm.test(\"Number of courses should be eql to limit\", () => {",
+											"    pm.expect(response.courses.length).to.eql(parseInt(limit));",
+											"});",
+											"",
+											"pm.environment.unset(\"limit\");",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"const params = pm.request.url.query.all();",
+											"",
+											"let limit;",
+											"params.forEach(el => {",
+											"    if(el.key === \"limit\") {",
+											"        limit = Math.floor(el.value);",
+											"    }",
+											"});",
+											"",
+											"pm.environment.set(\"limit\", limit);",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/courses?limit=1.1",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"courses"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "1.1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						]
+					}
 				}
 			]
 		},
@@ -1412,16 +1590,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/22333444444",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"22333444444"
-							]
-						}
+						"url": "{{baseURL}}/courses/22333444444"
 					},
 					"response": []
 				},
@@ -1450,16 +1619,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/22333444444",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"22333444444"
-							]
-						}
+						"url": "{{baseURL}}/courses/22333444444"
 					},
 					"response": []
 				},
@@ -1491,16 +1651,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/22333444444",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"22333444444"
-							]
-						}
+						"url": "{{baseURL}}/courses/22333444444"
 					},
 					"response": []
 				}
@@ -1520,14 +1671,18 @@
 					"script": {
 						"type": "text/javascript",
 						"exec": [
+							"const response = pm.response.json();",
+							"",
 							"pm.test(\"Status code is 404\", () => {",
 							"    pm.response.to.have.status(404);",
 							"});",
 							"",
-							"const response = pm.response.json();",
-							"",
 							"pm.test(\"Response should contain a fact\", () => {",
-							"    pm.expect(response).to.has.property(\"fact\");",
+							"    pm.expect(response).to.has.property(\"fact\").that.is.a(\"string\");",
+							"});",
+							"",
+							"pm.test(\"Response should contain a message\", () => {",
+							"    pm.expect(response.message).to.be.eq(\"Something went wrong. Please check your request and try again\")",
 							"});",
 							""
 						]
@@ -1547,7 +1702,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1556,22 +1712,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"author\": {{author}},\n    \"isFree\": {{isFree}},\n    \"site\": {{site}},\n    \"title\": {{title}},\n    \"type\": {{type}}\n}\n",
+							"raw": "{\n    \"author\": \"{{author}}\",\n    \"isFree\": {{isFree}},\n    \"site\": \"{{site}}\",\n    \"title\": \"{{title}}\",\n    \"type\": \"{{type}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses"
-							]
-						}
+						"url": "{{baseURL}}/courses"
 					},
 					"response": []
 				},
@@ -1584,7 +1732,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1593,23 +1742,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"author\": {{author}},\n    \"isFree\": {{isFree}},\n    \"site\": {{site}},\n    \"title\": {{title}},\n    \"type\": {{type}}\n}\n",
+							"raw": "{\n    \"author\": \"{{author}}\",\n    \"isFree\": {{isFree}},\n    \"site\": \"{{site}}\",\n    \"title\": \"{{title}}\",\n    \"type\": \"{{type}}\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/640f2f1b44c471a3cdcb8079",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"640f2f1b44c471a3cdcb8079"
-							]
-						}
+						"url": "{{baseURL}}/courses/640f2f1b44c471a3cdcb8079"
 					},
 					"response": []
 				}
@@ -1629,15 +1769,16 @@
 					"script": {
 						"type": "text/javascript",
 						"exec": [
+							"const response = pm.response.json();",
+							"",
 							"pm.test(\"Status code is 400\", () => {",
 							"    pm.response.to.have.status(400);",
 							"});",
 							"",
-							"const response = pm.response.json();",
-							"",
 							"pm.test(\"Response should contain a fact\", () => {",
 							"    pm.expect(response).to.has.property(\"fact\");",
-							"});"
+							"});",
+							""
 						]
 					}
 				}
@@ -1655,7 +1796,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1664,61 +1806,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"author\": \"I am a mom's Developer\",\n    \"isFree\": true,\n    \"site\": \"https://example.com\",\n    \"title\": \"Yes, I'm cool dev!\",\n    \"type\": \"QA\"\n}",
+							"raw": "{\n    \"author\": \"{{$randomFullName}}\",\n    \"isFree\": true,\n    \"site\": \"https://testautomationu.applitools.com/unit-testing/\",\n    \"title\": \"{{$randomLoremSentence}}\",\n    \"type\": \"QA\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses/640f2f1b44c471a3cdcb8079",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"640f2f1b44c471a3cdcb8079"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete course by wrong method",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/courses/640f2f1b44c471a3cdcb8079",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses",
-								"640f2f1b44c471a3cdcb8079"
-							]
-						}
+						"url": "{{baseURL}}/courses/640f2f1b44c471a3cdcb8079"
 					},
 					"response": []
 				},
@@ -1731,7 +1826,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1740,22 +1836,14 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"author\": \"TariqHHHHHHHHH King\",\n    \"isFree\": true,\n    \"site\": \"https://testautomationu.applitools.com/unit-testing/\",\n    \"title\": \"title\",\n    \"type\": \"QA\"\n}",
+							"raw": "{\n    \"author\": \"{{$randomFullName}}\",\n    \"isFree\": true,\n    \"site\": \"https://testautomationu.applitools.com/unit-testing/\",\n    \"title\": \"{{$randomLoremSentence}}\",\n    \"type\": \"QA\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseURL}}/courses",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"courses"
-							]
-						}
+						"url": "{{baseURL}}/courses"
 					},
 					"response": []
 				}
@@ -1775,11 +1863,11 @@
 					"script": {
 						"type": "text/javascript",
 						"exec": [
+							"const response = pm.response.json();",
+							"",
 							"pm.test(\"Status code is 400\", () => {",
 							"    pm.response.to.have.status(400);",
 							"});",
-							"",
-							"const response = pm.response.json();",
 							"",
 							"pm.test(\"Response should contain error\", () => {",
 							"    pm.expect(response).to.has.property(\"error\");",
