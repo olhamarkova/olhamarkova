@@ -28,7 +28,7 @@
 									"    pm.expect(response.courses.length).to.eql(10);",
 									"});",
 									"",
-									"pm.test(\"Schema for the response should be valid\", function () {",
+									"pm.test(\"Schema for the response should be valid\", () => {",
 									"  const schema = {",
 									"    type: \"object\",",
 									"    properties: {",
@@ -56,6 +56,10 @@
 									"",
 									"  const validate = ajv.compile(schema);",
 									"  pm.expect(validate(response)).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Response time is within acceptable range\", () => {",
+									"  pm.expect(pm.response.responseTime).to.be.below(300);",
 									"});",
 									""
 								],
@@ -89,12 +93,13 @@
 								}
 							}
 						},
-						"url": "{{baseURL}}/courses"
+						"url": "{{baseURL}}/courses",
+						"description": "### Retrieve Courses\n\nThis endpoint makes an HTTP GET request to retrieve a list of courses.\n\n#### Request\n\nNo request body is required for this endpoint.\n\n#### Response\n\nThe response will be a JSON object representing the list of courses. The schema for the response can be documented as follows:\n\n``` json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"courses\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"courseId\": {\n            \"type\": \"string\"\n          },\n          \"courseName\": {\n            \"type\": \"string\"\n          },\n          \"courseDescription\": {\n            \"type\": \"string\"\n          },\n          \"courseInstructor\": {\n            \"type\": \"string\"\n          }\n        }\n      }\n    }\n  }\n}\n\n ```"
 					},
 					"response": []
 				},
 				{
-					"name": "Create course",
+					"name": "Create a course",
 					"event": [
 						{
 							"listen": "test",
@@ -203,17 +208,17 @@
 									"        const schema = {",
 									"        type: \"object\",",
 									"        properties: {",
-									"        reqId: { type: \"string\" },",
-									"        course: {",
-									"            type: \"object\",",
-									"            properties: {",
-									"            id: { type: \"string\" },",
-									"            title: { type: \"string\" },",
-									"            author: { type: \"string\" },",
-									"            free: { type: \"boolean\" },",
-									"            resource: { type: \"string\" },",
-									"            category: { type: \"string\" }",
-									"            },",
+									"            reqId: { type: \"string\" },",
+									"            course: {",
+									"                type: \"object\",",
+									"                properties: {",
+									"                    id: { type: \"string\" },",
+									"                    title: { type: \"string\" },",
+									"                    author: { type: \"string\" },",
+									"                    free: { type: \"boolean\" },",
+									"                    resource: { type: \"string\" },",
+									"                    category: { type: \"string\" }",
+									"                },",
 									"            required: [\"id\", \"title\", \"author\", \"free\", \"resource\", \"category\"]",
 									"        }",
 									"     },",
@@ -286,7 +291,7 @@
 					"response": []
 				},
 				{
-					"name": "Update course by id",
+					"name": "Update a course by id",
 					"event": [
 						{
 							"listen": "test",
@@ -325,6 +330,7 @@
 									"    pm.expect(response.message).to.eq(\"The course was deleted successfully\");",
 									"});",
 									"",
+									"pm.environment.unset(\"newCourseId\");",
 									""
 								],
 								"type": "text/javascript",
@@ -383,7 +389,7 @@
 					"response": []
 				},
 				{
-					"name": "Delete course",
+					"name": "Delete a course",
 					"event": [
 						{
 							"listen": "test",
